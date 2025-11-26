@@ -1,38 +1,39 @@
-require('dotenv').config();
-
+// ---------------------------------------------
+// Imports
+// ---------------------------------------------
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+require('dotenv').config();
 
-const {
-  getToolDefinitionsForOpenAI,
-  callTool
-} = require('./mcp/mcpServer');
+const { getToolDefinitionsForOpenAI, callTool } = require('./mcp/mcpServer');
 
+// ---------------------------------------------
+// App Setup
+// ---------------------------------------------
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
-
-// Middleware
+app.use(express.json());
 app.use(
   cors({
-    origin: ALLOWED_ORIGIN,
-    credentials: false
+    origin: process.env.ALLOWED_ORIGIN || '*'
   })
 );
-app.use(express.json());
 
-// Health check
+// ---------------------------------------------
+// Health Check
+// ---------------------------------------------
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'mcp-youtube-agent-server' });
+  res.json({
+    status: 'ok',
+    service: 'mcp-youtube-agent-server'
+  });
 });
 
-/**
- * /api/chat
- * Body: { message: string }
- * Response: { reply: string, videos: array }
- */
+// ---------------------------------------------
+// /api/chat (MAIN ENDPOINT)
+// ---------------------------------------------
 app.post('/api/chat', async (req, res) => {
   try {
     const userMessage = req.body.message;
@@ -50,16 +51,14 @@ app.post('/api/chat', async (req, res) => {
     const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 
     const systemPrompt = `
-You are an AI YouTube assistant connected to a Model Context Protocol (MCP) server.
+You are an AI YouTube agent connected to an MCP server.
 
-The MCP server exposes tools (such as youtube_search) that wrap YouTube's Data API.
-Your job:
-- Understand the user's request.
-- Decide when to call MCP tools.
-- Use youtube_search to find videos that match the user's needs.
-- Analyze the returned videos and give a clear, helpful recommendation.
-- Always include explanations in natural language, not just raw data.
-- If the user wants learning paths, order the videos logically from beginner to advanced.
+Your goals:
+- Provide helpful, well-structured, clean responses.
+- ALWAYS use Markdown formatting (bold, headings, lists).
+- Decide when to call youtube_search tool via MCP.
+- Give clear recommendations based on returned videos.
+- Keep responses short, clean, and readable.
 `;
 
     const messages = [
@@ -69,7 +68,6 @@ Your job:
 
     const tools = getToolDefinitionsForOpenAI();
 
-    // First call: let the model decide if tools are needed
     const firstResponse = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       {
@@ -91,24 +89,15 @@ Your job:
     let aggregatedVideos = [];
     let finalAssistantMessage = firstMessage;
 
-    // Handle tool calls (MCP server)
     if (firstMessage.tool_calls && firstMessage.tool_calls.length > 0) {
       const toolMessages = [];
 
       for (const toolCall of firstMessage.tool_calls) {
         const toolName = toolCall.function.name;
-        let toolArgs = {};
+        const toolArgs = JSON.parse(toolCall.function.arguments || '{}');
 
-        try {
-          toolArgs = JSON.parse(toolCall.function.arguments || '{}');
-        } catch (err) {
-          console.error('Failed to parse tool arguments', err);
-        }
-
-        // Call the MCP tool
         const toolResult = await callTool(toolName, toolArgs);
 
-        // For frontend convenience, capture YouTube results
         if (toolName === 'youtube_search') {
           aggregatedVideos = toolResult;
         }
@@ -121,7 +110,6 @@ Your job:
         });
       }
 
-      // Second call: provide tool results so the LLM can summarize / reason
       const secondResponse = await axios.post(
         'https://api.openai.com/v1/chat/completions',
         {
@@ -152,6 +140,9 @@ Your job:
   }
 });
 
+// ---------------------------------------------
+// Start Server
+// ---------------------------------------------
 app.listen(PORT, () => {
-  console.log(`MCP YouTube Agent server running on http://localhost:${PORT}`);
+  console.log(`MCP YouTube Agent server running on port ${PORT}`);
 });
