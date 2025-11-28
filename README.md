@@ -17,7 +17,7 @@ This is a template MCP YouTube agent built for extending into full automation su
 
 # 🚀 Live Demo (If you deploy later)
 Frontend (Vercel)  
-🔗 *Add your Vercel URL here*
+🔗 mcp-youtube-agent-1.vercel.app
 
 Backend (Render / Railway / Local)  
 🔗 *Add your backend URL here*
