@@ -1,233 +1,248 @@
-🎥 MCP YouTube Agent
-A full-stack Model Context Protocol (MCP) powered YouTube Agent that connects a modern frontend UI with a backend Node.js server to fetch YouTube video metadata, captions, and perform YouTube-related automation tasks.
+# 🎥 MCP YouTube Agent — (Full Automation + MCP + OAuth + Netflix UI)
 
-This project includes:
+A full-stack **Model Context Protocol (MCP) powered YouTube Agent** with a modern **React frontend**, **Node.js backend**, and **Google OAuth integration**.
 
-🔍 Fetch video metadata  
-🎞 Get thumbnails  
-📝 Fetch captions (auto/manual)  
-📺 Get channel info  
-🎛 MCP Tools integration  
-🌐 Full frontend + backend setup  
-⚡ Works without OAuth (using YouTube API key)
+This agent intelligently interacts with YouTube using:
 
-This is a template MCP YouTube agent built for extending into full automation such as likes, history, etc.
+✔ YouTube Data API (Search, Metadata)
+✔ OAuth2 (Like / Unlike videos + Watch History + Liked List)
+✔ MCP Tools (search + metadata)
+✔ Clean cinematic UI with Netflix-style design
+
+This project started as a metadata tool but has now grown into a **full YouTube automation assistant**.
 
 ---
 
-# 🚀 Live Demo (If you deploy later)
-Frontend (Vercel)  
-🔗 mcp-youtube-agent-1.vercel.app
+# 🚀 Live Demo
 
-Backend (Render / Railway / Local)  
-🔗 *Add your backend URL here*
+**Frontend (Vercel):**
+🔗 [https://mcp-youtube-agent-rouge.vercel.app/](https://mcp-youtube-agent-rouge.vercel.app/)
+
+**Backend (Render):**
+🔗 [https://mcp-youtube-agent.onrender.com/](https://mcp-youtube-agent.onrender.com/)
 
 ---
 
-# 🏗 Project Architecture
+# 🏗 Project Architecture (Updated)
 
 ```
-
-mcp-youtube-agent-1/
+mcp-youtube-agent/
 │
-├── server/                            # Backend (Node.js + Express)
-│   ├── server.js                      # Main API server
-│   ├── package.json                   # Backend dependencies
-│   ├── .env.example                   # Sample .env file
-│   ├── mcp/                           # MCP tools
-│   │   ├── getVideoInfo.js            # Tool: fetches metadata
-│   │   ├── getCaptions.js             # Tool: fetches captions
-│   │   └── index.js                   # Exports all tools
-│   └── utils/                         # YouTube helpers, parsers
+├── server/                               # Backend (Node.js + Express)
+│   ├── server.js                         # REST API + OAuth + MCP integration
+│   ├── youtubeClient.js                  # YouTube search wrapper (API Key)
+│   ├── services/
+│   │     ├── youtubeOAuth.js             # OAuth like/unlike/history/liked
+│   ├── mcp/
+│   │     ├── tools/
+│   │     │     ├── youtube.js            # MCP search tool
+│   │     └── mcpServer.js                # MCP tool registry
+│   ├── .env.example                      # Credentials template
+│   └── package.json
 │
-├── frontend/                          # Frontend UI (React or HTML)
+├── frontend/
 │   ├── src/
-│   │   ├── App.jsx                    # Main UI logic
-│   │   ├── api.js                     # Communicates with backend
-│   └── index.html                     # UI layout
+│   │    ├── App.jsx                      # Full UI + chat + like/unlike system
+│   │    ├── App.css                      # Netflix + glassmorphism UI
+│   │    └── main.jsx
+│   ├── index.html
+│   ├── package.json
 │
-└── README.md                          # (This file)
-
+└── README.md
 ```
 
 ---
 
-# 🔐 Authentication Setup
-Your project uses:
+# 🔐 Authentication Setup (Updated)
 
-✔ **YOUTUBE_API_KEY** (no OAuth needed)  
-✔ Backend reads `.env`  
-✔ Frontend calls backend securely
+Your project uses **two types of authentication**:
 
-Example `.env`:
+## 1️⃣ YouTube API Key (for search + metadata)
 
-```
-
-YOUTUBE_API_KEY=your_key_here
-PORT=5000
+Used by MCP tools inside `youtubeClient.js`.
 
 ```
+YT_API_KEY=your_key_here
+```
+
+## 2️⃣ Google OAuth2 (for likes / unlikes / history / liked videos)
+
+Required for **real** YouTube interactions.
+
+Environment variables:
+
+```
+YOUTUBE_CLIENT_ID=xxxxxxxxxxxx.apps.googleusercontent.com
+YOUTUBE_CLIENT_SECRET=xxxxxxxxxxxx
+YOUTUBE_REFRESH_TOKEN=xxxxxxxxxxxx
+```
+
+The refresh token is generated using the `getRefreshToken.js` helper script.
 
 ---
 
-# ⚙️ Backend Environment Variables
+# ⚙ Backend Environment Variables (Final)
 
-Set inside `server/.env`:
+Your `server/.env` looks like:
 
 ```
+OPENAI_API_KEY=your_key
+OPENAI_MODEL=gpt-4o-mini
 
-YOUTUBE_API_KEY=xxxxxxxxxxxxxxxxxxxxx
+YT_API_KEY=your_youtube_api_key
+
+YOUTUBE_CLIENT_ID=xxx.apps.googleusercontent.com
+YOUTUBE_CLIENT_SECRET=xxxxx
+YOUTUBE_REFRESH_TOKEN=xxxxx
+
 PORT=3001
-
+ALLOWED_ORIGIN=https://mcp-youtube-agent-rouge.vercel.app
 ```
 
 ---
 
-# ⚙️ Frontend Environment Variables (If using Vite)
-Add inside `frontend/.env`:
+# ⚙ Frontend Environment Variables (Vite)
+
+Create `frontend/.env`:
 
 ```
-
-VITE_API_BASE_URL=[http://localhost:3001](http://localhost:3001)
-
+VITE_API_BASE_URL=https://mcp-youtube-agent.onrender.com
 ```
 
 ---
 
 # 🧠 MCP Tools Implemented
 
-| MCP Tool             | Description                    |
-|----------------------|--------------------------------|
-| youtube.videoInfo    | Fetch video metadata           |
-| youtube.getCaptions  | Fetch captions (auto/manual)   |
-| youtube.search       | Search YouTube videos          |
-
-Tools are located in the `server/mcp/` folder.
+| Tool                 | Description                           |
+| -------------------- | ------------------------------------- |
+| youtube.search       | Searches YouTube videos using API key |
+| youtube.videoInfo    | Fetches metadata                      |
+| youtube.getCaptions  | Fetches captions                      |
+| *(More extendable…)* |                                       |
 
 ---
 
 # ⭐ Current Features (Updated)
 
-### ✅ 1. Video Information Fetching
-- Title  
-- Description  
-- Views  
-- Channel details  
-- Thumbnail  
+### ✅ 1. **YouTube Search (MCP)**
 
-### ✅ 2. Captions Fetching
-Supports:
-- English captions  
-- Auto-generated subtitles  
+* Query-based search
+* Returns video metadata
+* Displays thumbnails, channels, dates
 
-### ✅ 3. Frontend UI
-- Input field for video URL / ID  
-- Displays full video card  
-- Shows metadata + captions  
+### ✅ 2. **YouTube OAuth Automations**
 
-### ✅ 4. Responsive Layout
-✔ Desktop view  
-✔ Mobile-friendly layout  
+✔ Like any video
+✔ Unlike video
+✔ Fetch full **Liked Videos List**
+✔ Fetch **Watch History (HL playlist)**
+✔ State sync with UI
 
-### ✅ 5. Persistent Results
-Search results stay until replaced  
-No auto-clear issues  
+### ✅ 3. **Smart UI State Management**
+
+✔ Like button turns green (`✔ Liked`)
+✔ Clicking again removes like
+✔ Automatically syncs when fetching liked videos
+
+### ✅ 4. **Cinematic Netflix-Style UI**
+
+* Black + red theme
+* Glassmorphism message bubbles
+* Floating message list
+* Modern chat interface
+
+### ✅ 5. **Chat with AI (OpenAI)**
+
+* Ask for recommendations
+* Ask for learning paths
+* AI decides when to call MCP tools
 
 ---
 
-# 📱 Responsive UI
-✔ Two-column grid on desktop  
-✔ Single column on mobile  
-✔ Smooth UI transitions  
-
----
-
-# 🧩 System Flow
+# 🧩 System Flow (Updated)
 
 ```
-
 User
-↓
-Frontend (React / HTML)
-↓  /api/video-info / api/captions
-Backend (Node.js + MCP)
-↓
-YouTube Data API
-↓
-Backend → Frontend UI Display
-
-````
+ ↓
+Frontend (React UI)
+ ↓  /api/chat            /api/like /api/unlike /api/liked /api/history
+Backend (Node.js + OAuth + MCP)
+ ↓
+YouTube API (Search + OAuth)
+ ↓
+Response → UI (Videos + Like State)
+```
 
 ---
 
 # 🛠 Local Development Guide
 
-## Backend
-```bash
+## Start Backend
+
+```
 cd server
 npm install
 npm start
-````
+```
 
-Runs at:
-👉 [http://localhost:5000](http://localhost:3001)
+Runs on:
+👉 [http://localhost:3001](http://localhost:3001)
 
-## Frontend
+## Start Frontend
 
-```bash
+```
 cd frontend
 npm install
 npm run dev
 ```
 
-Runs at:
+Runs on:
 👉 [http://localhost:5173](http://localhost:5173)
 
 ---
 
-# 🧪 Example Commands (Frontend Input)
+# 🧪 Example Chat Queries
 
-🔍 Fetch Video Info
-
-```
-https://youtu.be/dQw4w9WgXcQ
-```
-
-🎬 Captions
+### 🔍 Searching
 
 ```
-captions dQw4w9WgXcQ
+search AI tools
 ```
 
-🔎 Search Example
+### ❤️ Liked Videos
 
 ```
-search ai videos
+show my liked videos
 ```
 
-ℹ Get Metadata
+### 👍 Like/Unlike
+
+User presses *Like* → `✔ Liked`
+Presses again → unlikes video
+
+### 🎓 Learning queries
 
 ```
-info VIDEO_ID
+Recommend me a Kubernetes learning path
 ```
 
 ---
 
-# 🎯 Assignment Requirements (Checked)
+# 🎯 Assignment Requirements (Updated)
 
-| Requirement                      | Status  |
-| -------------------------------- | ------- |
-| Build MCP Agent                  | ✅       |
-| Integrate external API (YouTube) | ✅       |
-| Expose MCP tools                 | ✅       |
-| Complete frontend + backend      | ✅       |
-| Working demo                     | ⚡ Ready |
-| Public GitHub repo               | ✅       |
-| Clean UI                         | ✔       |
+| Requirement                       | Status                |
+| --------------------------------- | --------------------- |
+| MCP Agent                         | ✅                     |
+| YouTube API Integration           | ✅                     |
+| OAuth automation (likes, history) | ✅                     |
+| Frontend UI                       | 🎨 Premium Netflix UI |
+| Full-stack architecture           | ✅                     |
+| Working deployment                | 🔥 Live               |
+| Documentation                     | ✔ Complete            |
 
 ---
 
-# 🧑‍💻 Author
+# 👨‍💻 Author
 
 **Sai Prasad Padmanabha**
-MCP Agent Developer
+
